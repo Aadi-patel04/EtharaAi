@@ -22,11 +22,11 @@ app.use(cors({
 }));
 
 
-// ✅ Root route (only once)
-app.get("/", (req, res) => {
-  res.send("API Working 🚀");
-});
 
+app.get("/ping", (req,res)=>{
+  console.log("PING HIT");
+  res.json({msg:"pong"});
+});
 
 // ✅ Routes
 app.use("/api/auth", authRoutes);
