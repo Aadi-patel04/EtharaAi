@@ -22,10 +22,8 @@ app.use(cors({
 }));
 
 
-
-app.get("/ping", (req,res)=>{
-  console.log("PING HIT");
-  res.json({msg:"pong"});
+app.get("/", (req, res) => {
+  res.send("API Working 🚀");
 });
 
 // ✅ Routes
