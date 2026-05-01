@@ -7,41 +7,70 @@ const router = express.Router();
 
 // Signup
 router.post("/signup", async (req,res)=>{
-  const {name,email,password} = req.body;
+  try {
+    const {name,email,password} = req.body;
 
-  const existing = await User.findOne({email});
-  if(existing) return res.status(400).json("User already exists");
+    if(!name || !email || !password){
+      return res.status(400).json("All fields are required");
+    }
 
-  const hashed = await bcrypt.hash(password,10);
-  const user = await User.create({name,email,password:hashed});
+    const existing = await User.findOne({email});
+    if(existing){
+      return res.status(400).json("User already exists");
+    }
 
-  res.json(user);
+    const hashed = await bcrypt.hash(password,10);
+
+    const user = await User.create({
+      name,
+      email,
+      password: hashed
+    });
+
+    res.json(user);
+
+  } catch(err){
+    console.error("Signup Error:", err);
+    res.status(500).json({ error: err.message });
+  }
 });
 
-// Login (COOKIE BASED)
+
+// Login
 router.post("/login", async (req,res)=>{
-  const {email,password} = req.body;
+  try {
+    const {email,password} = req.body;
 
-  const user = await User.findOne({email});
-  if(!user) return res.status(400).json("User not found");
+    if(!email || !password){
+      return res.status(400).json("All fields required");
+    }
 
-  const match = await bcrypt.compare(password,user.password);
-  if(!match) return res.status(400).json("Wrong password");
+    const user = await User.findOne({email});
+    if(!user) return res.status(400).json("User not found");
 
-  const token = jwt.sign(
-    { id:user._id, role:user.role },
-    process.env.JWT_SECRET,
-    { expiresIn:"1d" }
-  );
+    const match = await bcrypt.compare(password,user.password);
+    if(!match) return res.status(400).json("Wrong password");
 
-  res.cookie("token", token, {
-    httpOnly:true,
-    secure:false,
-    sameSite:"lax"
-  });
+    const token = jwt.sign(
+      { id:user._id, role:user.role },
+      process.env.JWT_SECRET,
+      { expiresIn:"1d" }
+    );
 
-  res.json({ message:"Login success" });
+    res.cookie("token", token, {
+      httpOnly:true,
+      secure:true, // 🔥 IMPORTANT for Railway (HTTPS)
+      sameSite:"none"
+    });
+
+    res.json({ message:"Login success" });
+
+  } catch(err){
+    console.error("Login Error:", err);
+    res.status(500).json({ error: err.message });
+  }
 });
+
 
 // Logout
 router.post("/logout", (req,res)=>{

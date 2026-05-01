@@ -25,6 +25,10 @@ app.use(cors({
   credentials: true
 }));
 
+app.get("/", (req,res)=>{
+  res.send("API Working");
+});
+
 mongoose.connect(process.env.MONGO_URI)
 .then(()=>console.log("DB Connected"))
 .catch(err=>console.log(err));
